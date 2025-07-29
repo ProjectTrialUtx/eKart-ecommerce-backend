@@ -1,0 +1,31 @@
+name: Dependency Scan
+
+on:
+ workflow_dispatch: 
+
+jobs:
+  dependency-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Run OWASP Dependency Check
+        run: |
+          mkdir owasp
+          curl -L https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/dependency-check-8.4.0-release.zip -o owasp/dc.zip
+          unzip owasp/dc.zip -d owasp
+          ./owasp/dependency-check/bin/dependency-check.sh --project "My Project" --scan . --format "HTML" --out owasp/report
+
+      - name: Upload HTML Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: owasp/report/dependency-check-report.html
